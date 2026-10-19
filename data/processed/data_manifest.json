@@ -1,0 +1,8 @@
+{
+  "jigsaw_cleaned_rows": 159374,
+  "sms_cleaned_rows": 5160,
+  "unified_master_rows": 164534,
+  "normalization": "NFKC; remove zero-width/BOM; collapse whitespace; trim; preserve punctuation, case, and negation",
+  "label_policy": "Task labels remain separate; missing labels are null, not zero.",
+  "split_policy": "Independent 80/10/10 split, random_state=42."
+}
