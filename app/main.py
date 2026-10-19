@@ -46,7 +46,6 @@ def moderate_comment(req: PredictionRequest):
             detail="One or both models are missing. Train the models first.",
         )
 
-    # 1. Predict toxicity
     tox_features = tox_bundle["features"].transform([text])
     tox_probabilities = tox_bundle["model"].predict_proba(tox_features)[0]
 
@@ -66,7 +65,6 @@ def moderate_comment(req: PredictionRequest):
 
     is_toxic = bool(detected_toxicity_labels)
 
-    # 2. Predict spam
     spam_features = spam_bundle["features"].transform([text])
 
     spam_probability = float(
@@ -76,7 +74,6 @@ def moderate_comment(req: PredictionRequest):
     spam_threshold = float(spam_bundle["threshold"])
     is_spam = spam_probability >= spam_threshold
 
-    # 3. Make one final moderation decision
     review = is_toxic or is_spam
 
     reasons = []
