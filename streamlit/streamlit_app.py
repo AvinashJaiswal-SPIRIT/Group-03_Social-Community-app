@@ -280,8 +280,3 @@ if st.button(
             )
 
 st.divider()
-
-st.caption(
-    "Machine learning predictions can be incorrect. "
-    "A human moderator should make final moderation decisions."
-)
