@@ -34,3 +34,6 @@ app:
   cors:
     # Frontend URLs allowed to call this API (comma separated). Change to your frontend's URL.
     allowed-origins: http://localhost:5173,http://localhost:3000
+
+  mail:
+    sender: ${APP_MAIL_SENDER}
