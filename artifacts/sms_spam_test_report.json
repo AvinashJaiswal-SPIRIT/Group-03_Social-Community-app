@@ -40,5 +40,5 @@
   ],
   "threshold": 0.4799999999999998,
   "test_rows": 516,
-  "threshold_tuning": "spam F1 maximization on validation split only"
+  "threshold_tuning": "Spam F1 maximization on validation split only."
 }

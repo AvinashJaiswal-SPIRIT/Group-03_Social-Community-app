@@ -6,7 +6,10 @@ from fastapi import FastAPI, HTTPException
 from app.schemas.moderation import PredictionRequest
 
 ROOT = Path(__file__).resolve().parents[1]
-ART = ROOT / "artifacts"
+ARTIFACTS = ROOT / "artifacts"
+
+TOXICITY_MODEL_PATH = ARTIFACTS / "toxicity_word_char_tfidf.joblib"
+SPAM_MODEL_PATH = ARTIFACTS / "sms_spam_tfidf_logistic_regression.joblib"
 
 app = FastAPI(
     title="Smart Community Comment Moderation API",
@@ -14,25 +17,26 @@ app = FastAPI(
     description="Detects toxic comments and spam using one common endpoint.",
 )
 
-tox_path = ART / "toxicity_word_char_tfidf.joblib"
-spam_path = ART / "sms_spam_tfidf_logistic_regression.joblib"
-
-tox_bundle = joblib.load(tox_path) if tox_path.exists() else None
-spam_bundle = joblib.load(spam_path) if spam_path.exists() else None
+toxicity_bundle = (
+    joblib.load(TOXICITY_MODEL_PATH) if TOXICITY_MODEL_PATH.is_file() else None
+)
+spam_bundle = (
+    joblib.load(SPAM_MODEL_PATH) if SPAM_MODEL_PATH.is_file() else None
+)
 
 
 @app.get("/health")
 def health():
     return {
         "status": "ok",
-        "toxicity_model_loaded": tox_bundle is not None,
+        "toxicity_model_loaded": toxicity_bundle is not None,
         "spam_model_loaded": spam_bundle is not None,
     }
 
 
 @app.post("/api/v1/moderation/predict")
-def moderate_comment(req: PredictionRequest):
-    text = req.text.strip()
+def moderate_comment(request: PredictionRequest):
+    text = request.text.strip()
 
     if not text:
         raise HTTPException(
@@ -40,65 +44,75 @@ def moderate_comment(req: PredictionRequest):
             detail="Comment must not be blank.",
         )
 
-    if tox_bundle is None or spam_bundle is None:
+    if toxicity_bundle is None or spam_bundle is None:
         raise HTTPException(
             status_code=503,
             detail="One or both models are missing. Train the models first.",
         )
 
-    tox_features = tox_bundle["features"].transform([text])
-    tox_probabilities = tox_bundle["model"].predict_proba(tox_features)[0]
+    toxicity_features = toxicity_bundle["features"].transform([text])
+    toxicity_probabilities = toxicity_bundle["model"].predict_proba(
+        toxicity_features
+    )[0]
 
-    tox_thresholds = tox_bundle["thresholds"]
-    tox_labels = tox_bundle["labels"]
+    toxicity_thresholds = toxicity_bundle["thresholds"]
+    toxicity_labels = toxicity_bundle["labels"]
 
     toxicity_results = {
-        name: bool(float(probability) >= float(tox_thresholds[name]))
-        for name, probability in zip(tox_labels, tox_probabilities)
+        label: {
+            "probability": round(float(probability), 6),
+            "detected": bool(
+                float(probability) >= float(toxicity_thresholds[label])
+            ),
+        }
+        for label, probability in zip(
+            toxicity_labels, toxicity_probabilities
+        )
     }
 
     detected_toxicity_labels = [
-        name
-        for name, detected in toxicity_results.items()
-        if detected
+        label
+        for label, result in toxicity_results.items()
+        if result["detected"]
     ]
 
-    is_toxic = bool(detected_toxicity_labels)
-
     spam_features = spam_bundle["features"].transform([text])
-
     spam_probability = float(
         spam_bundle["model"].predict_proba(spam_features)[0, 1]
     )
-
     spam_threshold = float(spam_bundle["threshold"])
-    is_spam = spam_probability >= spam_threshold
+    spam_detected = spam_probability >= spam_threshold
 
-    review = is_toxic or is_spam
+    review_reasons = []
+    if detected_toxicity_labels:
+        review_reasons.append("TOXICITY_DETECTED")
+    if spam_detected:
+        review_reasons.append("SPAM_DETECTED")
+    if not review_reasons:
+        review_reasons.append("NO_HARMFUL_LABELS_DETECTED")
 
-    reasons = []
-
-    if is_toxic:
-        reasons.append("TOXICITY_DETECTED")
-
-    if is_spam:
-        reasons.append("SPAM_DETECTED")
-
-    if not reasons:
-        reasons.append("NO_HARMFUL_LABELS_DETECTED")
+    requires_review = bool(detected_toxicity_labels or spam_detected)
 
     return {
         "comment": text,
         "toxicity": {
-            "detected": is_toxic,
-            "labels": toxicity_results,
+            "detected": bool(detected_toxicity_labels),
+            "labels": {
+                label: result["detected"]
+                for label, result in toxicity_results.items()
+            },
+            "probabilities": {
+                label: result["probability"]
+                for label, result in toxicity_results.items()
+            },
             "detected_labels": detected_toxicity_labels,
         },
         "spam": {
-            "detected": is_spam,
+            "detected": bool(spam_detected),
             "probability": round(spam_probability, 6),
+            "threshold": round(spam_threshold, 6),
         },
-        "review": review,
-        "status": "REVIEW" if review else "PASSED",
-        "reason": reasons,
+        "review": requires_review,
+        "status": "REVIEW" if requires_review else "PASSED",
+        "reason": review_reasons,
     }
