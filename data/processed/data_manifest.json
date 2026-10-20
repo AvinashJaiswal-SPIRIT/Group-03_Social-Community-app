@@ -1,8 +1,30 @@
 {
-  "jigsaw_cleaned_rows": 159374,
-  "sms_cleaned_rows": 5160,
-  "unified_master_rows": 164534,
-  "normalization": "NFKC; remove zero-width/BOM; collapse whitespace; trim; preserve punctuation, case, and negation",
-  "label_policy": "Task labels remain separate; missing labels are null, not zero.",
-  "split_policy": "Independent 80/10/10 split, random_state=42."
+  "jigsaw_train_clean_rows": 159571,
+  "jigsaw_official_test_rows": 153163,
+  "jigsaw_test_labels_raw_rows": 153164,
+  "jigsaw_official_test_labeled_rows": 63978,
+  "jigsaw_sample_submission_rows": 153164,
+  "sms_clean_rows": 5160,
+  "unified_master_rows": 317894,
+  "source_counts": {
+    "jigsaw_toxic_comment": 159571,
+    "jigsaw_toxic_comment_test": 153163,
+    "sms_spam_collection": 5160
+  },
+  "sms_label_counts": {
+    "ham": 4518,
+    "spam": 642
+  },
+  "jigsaw_positive_counts": {
+    "toxic": 15294,
+    "severe_toxic": 1595,
+    "obscene": 8449,
+    "threat": 478,
+    "insult": 7877,
+    "identity_hate": 1405
+  },
+  "official_test_label_policy": "Rows containing -1 or missing labels are excluded from the labeled evaluation output.",
+  "sample_submission_policy": "Saved for reference only; never used as training labels.",
+  "cleaning": "Unicode NFKC; remove zero-width spaces and BOM; collapse whitespace; trim; preserve punctuation, case, negation, and emojis.",
+  "label_policy": "Unknown labels remain missing; spam labels are not toxicity labels."
 }
