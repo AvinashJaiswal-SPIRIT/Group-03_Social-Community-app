@@ -3,28 +3,25 @@ spring:
     name: SmartCommunity
 
   datasource:
+<<<<<<< HEAD
       url: ${SPRING_DATASOURCE_URL}
       username: ${SPRING_DATASOURCE_USERNAME}
       password: ${SPRING_DATASOURCE_PASSWORD}
       driver-class-name:
         org.postgresql.Driver
+=======
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name:
+      org.postgresql.Driver
+>>>>>>> origin/feature/backend
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
 
-  mail:
-      host: smtp-relay.brevo.com
-      port: 587
-      username: ${BREVO_SMTP_LOGIN}
-      password: ${BREVO_SMTP_KEY}
-      properties:
-        mail:
-          smtp:
-            auth: true
-            starttls:
-              enable: true
 
 jwt:
   secret: ${JWT_SECRET_BASE64}
@@ -36,4 +33,14 @@ app:
     allowed-origins: http://localhost:5173,http://localhost:3000
 
   mail:
+<<<<<<< HEAD
     sender: ${APP_MAIL_SENDER}
+=======
+    sender: ${APP_MAIL_SENDER}
+    sender-name: SmartCommunityNexora
+
+brevo:
+  api:
+    key: ${BREVO_API_KEY}
+
+>>>>>>> origin/feature/backend

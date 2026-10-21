@@ -35,7 +35,7 @@ public class EmailOtp {
     }
 
     public void incrementAttempts() {
-        attempts++;
+        this.attempts++;
     }
 }
 
